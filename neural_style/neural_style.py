@@ -36,7 +36,7 @@ def train(args):
     transformer = TransformerNet()
 
     if args.fine_tune:
-        transformer.load_state_dict(torch.load(args.checkpoint_name + ".t7"))
+        transformer.load_state_dict(torch.load(args.checkpoint_name + ".pth"))
 
     optimizer = Adam(transformer.parameters(), args.lr)
     mse_loss = torch.nn.MSELoss()
@@ -111,7 +111,7 @@ def train(args):
             if (batch_id + 1) % args.checkpoint_interval == 0:
                 transformer.eval()
                 transformer.cpu()
-                save_model_filename =  args.checkpoint_name + ".t7"
+                save_model_filename =  args.checkpoint_name + ".pth"
                 save_model_path = os.path.join(args.save_model_dir, save_model_filename)
                 torch.save(transformer.state_dict(), save_model_path)
                 print("\nSaved checkpoint at", save_model_path)
@@ -158,7 +158,7 @@ def stylize(args):
 
 
 def main():
-    main_arg_parser = argparse.ArgumentParser(description="parser for fast-neural-style")
+    main_arg_parser = argparse.ArgumentParser(description="parser for abhiskk-fns")
     subparsers = main_arg_parser.add_subparsers(title="subcommands", dest="subcommand")
 
     train_arg_parser = subparsers.add_parser("train",
