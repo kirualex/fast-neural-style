@@ -34,6 +34,8 @@ def train(args):
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size, **kwargs)
 
     transformer = TransformerNet()
+    if args.fine_tune:
+        transformer.load_state_dict(torch.load(args.checkpoint_name))
     optimizer = Adam(transformer.parameters(), args.lr)
     mse_loss = torch.nn.MSELoss()
 
@@ -59,22 +61,27 @@ def train(args):
         transformer.train()
         agg_content_loss = 0.
         agg_style_loss = 0.
+        agg_stable_loss = 0.
         count = 0
         for batch_id, (x, _) in enumerate(train_loader):
             n_batch = len(x)
             count += n_batch
             optimizer.zero_grad()
             x = Variable(utils.preprocess_batch(x))
+            xn = utils.add_noise(x)
+            
             if args.cuda:
                 x = x.cuda()
+                xn = xn.cuda()
 
             y = transformer(x)
-
+            yn = transformer(xn)
+            yn = Variable(yn.data.clone(), volatile=True)
             xc = Variable(x.data.clone(), volatile=True)
 
             y = utils.subtract_imagenet_mean_batch(y)
             xc = utils.subtract_imagenet_mean_batch(xc)
-
+            
             features_y = vgg(y)
             features_xc = vgg(xc)
 
@@ -87,30 +94,38 @@ def train(args):
                 gram_s = Variable(gram_style[m].data, requires_grad=False)
                 gram_y = utils.gram_matrix(features_y[m])
                 style_loss += args.style_weight * mse_loss(gram_y, gram_s[:n_batch, :, :])
-
-            total_loss = content_loss + style_loss
+                
+            tv_regularizer = utils.total_variation(y)
+            stabilizing_regularizer = mse_loss(y, yn)
+            total_loss = (content_loss
+                          + style_loss
+                          + args.lambda_tv * tv_regularizer
+                          + args.lambda_sr * stabilizing_regularizer)
             total_loss.backward()
             optimizer.step()
 
             agg_content_loss += content_loss.data[0]
             agg_style_loss += style_loss.data[0]
+            agg_stable_loss += stabilizing_regularizer.data[0]
 
             if (batch_id + 1) % args.log_interval == 0:
-                mesg = "{}\tEpoch {}:\t[{}/{}]\tcontent: {:.6f}\tstyle: {:.6f}\ttotal: {:.6f}".format(
+                mesg = "{}\tEpoch {}:\t[{}/{}]\tcontent: {:.6f}\tstyle: {:.6f}\tstability: {:.6f}\ttotal: {:.6f}".format(
                     time.ctime(), e + 1, count, len(train_dataset),
                                   agg_content_loss / (batch_id + 1),
                                   agg_style_loss / (batch_id + 1),
-                                  (agg_content_loss + agg_style_loss) / (batch_id + 1)
+                                  agg_stable_loss / (batch_id + 1),
+                                  (agg_content_loss + agg_style_loss + agg_stable_loss) / (batch_id + 1)
                 )
                 print(mesg)
-
-            if (batch_id + 1) % args.checkpoint_interval == 0:
+            
+            if (batch_id + 1) % (args.checkpoint_interval) == 0:
                 transformer.eval()
                 transformer.cpu()
-                save_model_filename =  args.checkpoint_name + ".t7"
+                save_model_filename = args.checkpoint_name + ".t7"
                 save_model_path = os.path.join(args.save_model_dir, save_model_filename)
                 torch.save(transformer.state_dict(), save_model_path)
-                print("\nSaved checkpoint at", save_model_path)
+                print("\nCheckpointed model saved at", save_model_path)
+                transformer.train()
                 if args.cuda:
                     transformer.cuda()
 
@@ -137,21 +152,44 @@ def check_paths(args):
 
 
 def stylize(args):
-    content_image = utils.tensor_load_rgbimage(args.content_image, scale=args.content_scale)
-    content_image = content_image.unsqueeze(0)
-
-    if args.cuda:
-        content_image = content_image.cuda()
-    content_image = Variable(utils.preprocess_batch(content_image), volatile=True)
     style_model = TransformerNet()
     style_model.load_state_dict(torch.load(args.model))
-
+    
     if args.cuda:
-        style_model.cuda()
+            style_model.cuda()
+    
+    if args.video:
+        frames = os.listdir(args.content_path)
+        
+        if not os.path.exists(args.output_path):
+            os.makedirs(args.output_path)
+        
+        for i,frame in enumerate(frames):
+            if not os.path.exists(args.output_path+'/'+frame):
+                content_image = utils.tensor_load_rgbimage(args.content_path+'/'+frame, scale=args.content_scale)
+                content_image = content_image.unsqueeze(0)
 
-    output = style_model(content_image)
-    utils.tensor_save_bgrimage(output.data[0], args.output_image, args.cuda)
+                if args.cuda:
+                    content_image = content_image.cuda()
+                content_image = Variable(utils.preprocess_batch(content_image), volatile=True)
 
+                output = style_model(content_image)
+                utils.tensor_save_bgrimage(output.data[0], args.output_path+'/'+frame, args.cuda)
+            print ('\r|'+str(i)+'|')
+        
+    else:
+        content_image = utils.tensor_load_rgbimage(args.content_path, scale=args.content_scale)
+        content_image = content_image.unsqueeze(0)
+
+        if args.cuda:
+            content_image = content_image.cuda()
+        content_image = Variable(utils.preprocess_batch(content_image), volatile=True)
+
+        if args.cuda:
+            style_model.cuda()
+
+        output = style_model(content_image)
+        utils.tensor_save_bgrimage(output.data[0], args.output_path, args.cuda)
 
 def main():
     main_arg_parser = argparse.ArgumentParser(description="parser for fast-neural-style")
@@ -159,6 +197,8 @@ def main():
 
     train_arg_parser = subparsers.add_parser("train",
                                              help="parser for training arguments")
+    train_arg_parser.add_argument("--fine-tune", type=bool, default=False,
+                                  help="for fine-tuning a trained model")
     train_arg_parser.add_argument("--epochs", type=int, default=2,
                                   help="number of training epochs, default is 2")
     train_arg_parser.add_argument("--batch-size", type=int, default=4,
@@ -182,6 +222,10 @@ def main():
                                   help="weight for content-loss, default is 1.0")
     train_arg_parser.add_argument("--style-weight", type=float, default=5.0,
                                   help="weight for style-loss, default is 5.0")
+    train_arg_parser.add_argument("--lambda-tv", type=float, default=10e-6,
+                                  help="strength of total variation regularizer, default is 10e-6")
+    train_arg_parser.add_argument("--lambda-sr", type=float, default=1000.0,
+                                  help="strength of stabilizing regularizer, default is 1000.0")
     train_arg_parser.add_argument("--lr", type=float, default=1e-3,
                                   help="learning rate, default is 0.001")
     train_arg_parser.add_argument("--log-interval", type=int, default=500,
