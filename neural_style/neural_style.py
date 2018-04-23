@@ -15,6 +15,7 @@ import utils
 from transformer_net import TransformerNet
 from vgg16 import Vgg16
 
+from onnx_coreml import convert
 
 def train(args):
     np.random.seed(args.seed)
@@ -156,6 +157,20 @@ def stylize(args):
     output = style_model(content_image)
     utils.tensor_save_bgrimage(output.data[0], args.output_image, args.cuda)
 
+def export_to_coreml(args):
+    model = TransformerNet()
+    model.load_state_dict(torch.load(args.input_model))
+    mlmodel = convert(model,
+            mode=None,
+            image_input_names=["inputImage"],
+            preprocessing_args={},
+            image_output_names=["outputImage"],
+            deprocessing_args={},
+            class_labels=None,
+            predicted_feature_name='classLabel',
+            add_custom_layers = False,
+            custom_conversion_functions = {})
+    print("Success")
 
 def main():
     main_arg_parser = argparse.ArgumentParser(description="parser for abhiskk-fns")
@@ -208,6 +223,13 @@ def main():
                                  help="saved model to be used for stylizing the image")
     eval_arg_parser.add_argument("--cuda", type=int, required=True,
                                  help="set it to 1 for running on GPU, 0 for CPU")
+
+    export_arg_parser = subparsers.add_parser("export", help="parser for export")
+    export_arg_parser.add_argument("--input-model", type=str, required=True,
+                                 help="path for input (.pth)")
+    export_arg_parser.add_argument("--output-model", type=str, required=True,
+                                 help="path for output (.mlmodel)")
+
 
     args = main_arg_parser.parse_args()
 

@@ -12,7 +12,7 @@ python neural_style/neural_style.py train \
 --checkpoint-name ~/Documents/data/models/abhiskk_checkpoint \
 --checkpoint-interval 200 \
 --content-weight 1.0 \
---style-weight 4.0 \
+--style-weight 3.0 \
 --batch-size 2 \
 --epochs 2 \
 --seed 77 \
@@ -29,3 +29,11 @@ python neural_style/neural_style.py eval \
 --output-image ~/Documents/data/images/stylized-test.jpg \
 --cuda 0
 ```
+
+### Export to CoreML
+```
+python neural_style/neural_style.py export \
+--input-model ~/Documents/data/models/abhiskk_checkpoint.pth \
+--output-image ~/Documents/data/models/abhiskk_model.mlmodel
+```
+
