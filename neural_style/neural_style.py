@@ -245,7 +245,7 @@ def main():
     if args.subcommand == "train":
         check_paths(args)
         train(args)
-    else if args.subcommand == "eval":
+    elif args.subcommand == "eval":
         stylize(args)
     else :
         export_to_coreml(args)
