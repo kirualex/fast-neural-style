@@ -104,6 +104,13 @@ def train(args):
                 )
                 print(mesg)
 
+            if (batch_id + 1) % args.checkpoint_interval == 0:
+                transformer.eval()
+                transformer.cpu()
+                save_model_filename =  args.checkpoint_name + ".t7"
+                save_model_path = os.path.join(args.save_model_dir, save_model_filename)
+                torch.save(transformer.state_dict(), save_model_path)
+
     # save model
     transformer.eval()
     transformer.cpu()
@@ -176,6 +183,10 @@ def main():
                                   help="learning rate, default is 0.001")
     train_arg_parser.add_argument("--log-interval", type=int, default=500,
                                   help="number of images after which the training loss is logged, default is 500")
+    train_arg_parser.add_argument("--checkpoint-name", type=str, default="checkpoint",
+                                  help="name of checkpoint model")
+    train_arg_parser.add_argument("--checkpoint-interval", type=int, default=500,
+                                  help="save a checkpoint every n")
 
     eval_arg_parser = subparsers.add_parser("eval", help="parser for evaluation/stylizing arguments")
     eval_arg_parser.add_argument("--content-image", type=str, required=True,
