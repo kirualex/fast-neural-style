@@ -232,7 +232,6 @@ def main():
     export_arg_parser.add_argument("--cuda", type=int, required=True,
                                  help="set it to 1 for running on GPU, 0 for CPU")
 
-
     args = main_arg_parser.parse_args()
 
     if args.subcommand is None:
@@ -246,8 +245,10 @@ def main():
     if args.subcommand == "train":
         check_paths(args)
         train(args)
-    else:
+    else if args.subcommand == "eval":
         stylize(args)
+    else :
+        export_to_coreml(args)
 
 
 if __name__ == "__main__":
