@@ -234,7 +234,7 @@ def main():
     args = main_arg_parser.parse_args()
 
     if args.subcommand is None:
-        print("ERROR: specify either train or eval")
+        print("ERROR: specify either train, eval or export")
         sys.exit(1)
 
     if args.cuda and not torch.cuda.is_available():

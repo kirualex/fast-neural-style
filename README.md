@@ -34,6 +34,6 @@ python neural_style/neural_style.py eval \
 ```
 python neural_style/neural_style.py export \
 --input-model ~/Documents/data/models/abhiskk_checkpoint.pth \
---output-image ~/Documents/data/models/abhiskk_model.mlmodel
+--output-model ~/Documents/data/models/abhiskk_model.mlmodel
 ```
 
