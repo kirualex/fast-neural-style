@@ -229,6 +229,8 @@ def main():
                                  help="path for input (.pth)")
     export_arg_parser.add_argument("--output-model", type=str, required=True,
                                  help="path for output (.mlmodel)")
+    export_arg_parser.add_argument("--cuda", type=int, required=True,
+                                 help="set it to 1 for running on GPU, 0 for CPU")
 
 
     args = main_arg_parser.parse_args()
