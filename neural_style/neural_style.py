@@ -35,7 +35,7 @@ def train(args):
 
     transformer = TransformerNet()
     if args.fine_tune:
-        transformer.load_state_dict(torch.load(args.checkpoint_name))
+        transformer.load_state_dict(torch.load(args.checkpoint_name + ".t7"))
     optimizer = Adam(transformer.parameters(), args.lr)
     mse_loss = torch.nn.MSELoss()
 
@@ -197,7 +197,7 @@ def main():
 
     train_arg_parser = subparsers.add_parser("train",
                                              help="parser for training arguments")
-    train_arg_parser.add_argument("--fine-tune", type=bool, default=False,
+    train_arg_parser.add_argument("--fine-tune", action='store_true',
                                   help="for fine-tuning a trained model")
     train_arg_parser.add_argument("--epochs", type=int, default=2,
                                   help="number of training epochs, default is 2")
