@@ -1,5 +1,4 @@
 import os
-import random
 
 import numpy as np
 import torch
@@ -44,13 +43,6 @@ def gram_matrix(y):
     gram = features.bmm(features_t) / (ch * h * w)
     return gram
 
-def total_variation(x):
-    y = (   
-            torch.sum(torch.abs(x[:, :, :, :-1] - x[:, :, :, 1:])) + 
-            torch.sum(torch.abs(x[:, :, :-1, :] - x[:, :, 1:, :]))
-        )
-    return y
-
 
 def subtract_imagenet_mean_batch(batch):
     tensortype = type(batch.data)
@@ -61,6 +53,7 @@ def subtract_imagenet_mean_batch(batch):
     batch = batch.sub(Variable(mean))
     return batch
 
+
 def preprocess_batch(batch):
     batch = batch.transpose(0, 1)
     (r, g, b) = torch.chunk(batch, 3)
@@ -68,13 +61,6 @@ def preprocess_batch(batch):
     batch = batch.transpose(0, 1)
     return batch
 
-def add_noise(batch, noise_count=0.003, noise_range=30.0):
-    rand_pixels = np.random.rand(batch.shape[0],batch.shape[1],batch.shape[2],batch.shape[3])
-    rand_pixels = (rand_pixels < noise_count) * 1.
-    noise = np.random.rand(batch.shape[0],batch.shape[1],batch.shape[2],batch.shape[3]) * noise_range
-    noise = rand_pixels * noise
-    noisev = Variable(torch.FloatTensor(noise))
-    return (batch + noisev).clamp(0,255)
 
 def init_vgg16(model_folder):
     if not os.path.exists(os.path.join(model_folder, 'vgg16.weight')):
