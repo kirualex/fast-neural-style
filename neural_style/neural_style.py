@@ -236,12 +236,14 @@ def main():
                                   help="save a checkpoint every n")
 
     eval_arg_parser = subparsers.add_parser("eval", help="parser for evaluation/stylizing arguments")
-    eval_arg_parser.add_argument("--content-image", type=str, required=True,
+    eval_arg_parser.add_argument("--video", type=int, default=0,
+                                 help="if you are stylizing video, set to 1, default is 0")
+    eval_arg_parser.add_argument("--content-path", type=str, required=True,
                                  help="path to content image you want to stylize")
     eval_arg_parser.add_argument("--content-scale", type=float, default=None,
-                                 help="factor for scaling down the content image")
-    eval_arg_parser.add_argument("--output-image", type=str, required=True,
-                                 help="path for saving the output image")
+                                 help="factor for scaling down the content")
+    eval_arg_parser.add_argument("--output-path", type=str, required=True,
+                                 help="path for saving the output")
     eval_arg_parser.add_argument("--model", type=str, required=True,
                                  help="saved model to be used for stylizing the image")
     eval_arg_parser.add_argument("--cuda", type=int, required=True,
