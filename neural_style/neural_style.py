@@ -110,6 +110,9 @@ def train(args):
                 save_model_filename =  args.checkpoint_name + ".t7"
                 save_model_path = os.path.join(args.save_model_dir, save_model_filename)
                 torch.save(transformer.state_dict(), save_model_path)
+                print("\nSaved checkpoint at", save_model_path)
+                if args.cuda:
+                    transformer.cuda()
 
     # save model
     transformer.eval()
