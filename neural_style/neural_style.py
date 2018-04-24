@@ -161,26 +161,6 @@ def export_to_coreml(args):
     model.load_state_dict(torch.load(args.input_model))
     print(model)
 
-    dummy_input = Variable(torch.randn(1, 3, 224, 224))
-    torch.onnx.export(model, dummy_input, "prepared.onnx")
-    onnxmodel = onnx.load("prepared.onnx")
-
-    print("pth -> onnx done")
-    print(onnxmodel)
-
-    # mlmodel = convert(onnxmodel,
-    #         mode=None,
-    #         image_input_names=["inputImage"],
-    #         preprocessing_args={},
-    #         image_output_names=["outputImage"],
-    #         deprocessing_args={},
-    #         class_labels=None,
-    #         predicted_feature_name='classLabel',
-    #         add_custom_layers = False,
-    #         custom_conversion_functions = {})
-    # print("Success")
-    # print(mlmodel)
-
 def main():
     main_arg_parser = argparse.ArgumentParser(description="parser for abhiskk-fns")
     subparsers = main_arg_parser.add_subparsers(title="subcommands", dest="subcommand")
@@ -238,8 +218,6 @@ def main():
                                  help="path for input (.pth)")
     export_arg_parser.add_argument("--output-model", type=str, required=True,
                                  help="path for output (.mlmodel)")
-    export_arg_parser.add_argument("--cuda", type=int, required=True,
-                                 help="set it to 1 for running on GPU, 0 for CPU")
 
     args = main_arg_parser.parse_args()
 
