@@ -157,8 +157,7 @@ def stylize(args):
 
 def export_to_coreml(args):
     print("Exporting...")
-    model = TransformerNet()
-    model.load_state_dict(torch.load(args.input_model)).cpu()
+    model = torch.load(args.input_model).cpu()
     model.train(False)
 
     dummy_input = Variable(torch.randn(1, 3, 224, 224))
