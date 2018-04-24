@@ -157,11 +157,13 @@ def stylize(args):
 
 def export_to_coreml(args):
     print("Exporting...")
-    model = torch.load(args.input_model).cpu()
+    model = TransformerNet()
+    model.load_state_dict(torch.load(args.input_model))
     model.train(False)
 
     dummy_input = Variable(torch.randn(1, 3, 224, 224))
     output_torch = model(dummy_input)
+
     onnx_model_name = "model.proto"
 
     torch.onnx.export(model, dummy_input, onnx_model_name, verbose=True)
