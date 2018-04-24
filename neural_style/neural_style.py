@@ -160,7 +160,12 @@ def stylize(args):
 def export_to_coreml(args):
     model = TransformerNet()
     model.load_state_dict(torch.load(args.input_model))
-    mlmodel = convert(model,
+
+    dummy_input = Variable(torch.randn(1, 3, 224, 224))
+    torch.onnx.export(model, dummy_input, "prepared.onnx")
+    onnxmodel = onnx.load("prepared.onnx")
+
+    mlmodel = convert(onnxmodel,
             mode=None,
             image_input_names=["inputImage"],
             preprocessing_args={},
@@ -171,6 +176,7 @@ def export_to_coreml(args):
             add_custom_layers = False,
             custom_conversion_functions = {})
     print("Success")
+    print(mlmodel)
 
 def main():
     main_arg_parser = argparse.ArgumentParser(description="parser for abhiskk-fns")
