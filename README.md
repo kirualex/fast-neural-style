@@ -36,8 +36,7 @@ python neural_style/neural_style.py eval \
 ```
 python neural_style/neural_style.py export \
 --input-model ~/Documents/data/models/abhiskk_checkpoint.pth \
---output-model ~/Documents/data/models/abhiskk_model.mlmodel \
---cuda 0
+--output-model ~/Documents/data/models/abhiskk_model.mlmodel
 ```
 
 ```
