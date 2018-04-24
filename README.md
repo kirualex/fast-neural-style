@@ -1,6 +1,7 @@
 # pytorch-fns
 
 
+
 ### Train
 
 ```
@@ -31,10 +32,16 @@ python neural_style/neural_style.py eval \
 ```
 
 ### Export to CoreML
+
 ```
 python neural_style/neural_style.py export \
 --input-model ~/Documents/data/models/abhiskk_checkpoint.pth \
 --output-model ~/Documents/data/models/abhiskk_model.mlmodel \
 --cuda 0
 ```
+
+```
+/usr/local/lib/python2.7/dist-packages/torch/onnx
+```
+
 

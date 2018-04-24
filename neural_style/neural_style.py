@@ -159,7 +159,13 @@ def export_to_coreml(args):
     print("Exporting...")
     model = TransformerNet()
     model.load_state_dict(torch.load(args.input_model))
-    print(model)
+
+    onnx_model_name = 'test.onnx'
+
+    dummy_input = Variable(torch.FloatTensor(1, 3, 720, 720))
+    torch.onnx.export(model, dummy_input, onnx_model_name, verbose=True)
+    onnxmodel = onnx.load(onnx_model_name)
+    print(onnxmodel)
 
 def check_cuda(args):
     if args.cuda and not torch.cuda.is_available():
