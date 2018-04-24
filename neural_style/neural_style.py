@@ -15,8 +15,6 @@ import utils
 from transformer_net import TransformerNet
 from vgg16 import Vgg16
 
-from onnx_coreml import convert
-
 def train(args):
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
@@ -158,25 +156,30 @@ def stylize(args):
     utils.tensor_save_bgrimage(output.data[0], args.output_image, args.cuda)
 
 def export_to_coreml(args):
+    print("Exporting...")
     model = TransformerNet()
     model.load_state_dict(torch.load(args.input_model))
+    print(model)
 
     dummy_input = Variable(torch.randn(1, 3, 224, 224))
     torch.onnx.export(model, dummy_input, "prepared.onnx")
     onnxmodel = onnx.load("prepared.onnx")
 
-    mlmodel = convert(onnxmodel,
-            mode=None,
-            image_input_names=["inputImage"],
-            preprocessing_args={},
-            image_output_names=["outputImage"],
-            deprocessing_args={},
-            class_labels=None,
-            predicted_feature_name='classLabel',
-            add_custom_layers = False,
-            custom_conversion_functions = {})
-    print("Success")
-    print(mlmodel)
+    print("pth -> onnx done")
+    print(onnxmodel)
+
+    # mlmodel = convert(onnxmodel,
+    #         mode=None,
+    #         image_input_names=["inputImage"],
+    #         preprocessing_args={},
+    #         image_output_names=["outputImage"],
+    #         deprocessing_args={},
+    #         class_labels=None,
+    #         predicted_feature_name='classLabel',
+    #         add_custom_layers = False,
+    #         custom_conversion_functions = {})
+    # print("Success")
+    # print(mlmodel)
 
 def main():
     main_arg_parser = argparse.ArgumentParser(description="parser for abhiskk-fns")
