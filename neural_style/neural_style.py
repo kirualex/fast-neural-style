@@ -235,7 +235,7 @@ def main():
         stylize(args)
     elif args.subcommand == "export":
         export_to_coreml(args)
-    else
+    else:
         print("ERROR: specify either train, eval or export")
         sys.exit(1)
 
