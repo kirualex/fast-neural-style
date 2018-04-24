@@ -161,6 +161,11 @@ def export_to_coreml(args):
     model.load_state_dict(torch.load(args.input_model))
     print(model)
 
+def check_cuda(args):
+    if args.cuda and not torch.cuda.is_available():
+        print("ERROR: cuda is not available, try running on CPU")
+        sys.exit(1)
+
 def main():
     main_arg_parser = argparse.ArgumentParser(description="parser for abhiskk-fns")
     subparsers = main_arg_parser.add_subparsers(title="subcommands", dest="subcommand")
@@ -221,22 +226,18 @@ def main():
 
     args = main_arg_parser.parse_args()
 
-    if args.subcommand is None:
-        print("ERROR: specify either train, eval or export")
-        sys.exit(1)
-
-    if args.cuda and not torch.cuda.is_available():
-        print("ERROR: cuda is not available, try running on CPU")
-        sys.exit(1)
-
     if args.subcommand == "train":
+        check_cuda(args)
         check_paths(args)
         train(args)
     elif args.subcommand == "eval":
+        check_cuda(args)
         stylize(args)
-    else :
+    elif args.subcommand == "export":
         export_to_coreml(args)
-
+    else
+        print("ERROR: specify either train, eval or export")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
