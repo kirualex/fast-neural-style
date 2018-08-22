@@ -104,9 +104,14 @@ def train(args):
 
             if args.checkpoint_model_dir is not None and (batch_id + 1) % args.checkpoint_interval == 0:
                 transformer.eval().cpu()
-                ckpt_model_filename = "ckpt_epoch_" + str(e) + "_batch_id_" + str(batch_id + 1) + ".pth"
+                ckpt_model_filename = "checkpoint_"+ str(batch_id + 1) + ".pth" #"ckpt_epoch_" + str(e) + "_batch_id_" + str(batch_id + 1) + ".pth"
                 ckpt_model_path = os.path.join(args.checkpoint_model_dir, ckpt_model_filename)
                 torch.save(transformer.state_dict(), ckpt_model_path)
+                os.system(  "python neural_style/neural_style.py eval \
+                            --model ~/Documents/data/models/pytorch-checkpoints/"+ckpt_model_filename+" \
+                            --content-image ~/Documents/data/images/test.jpg \
+                            --output-image ~/Documents/data/images/pytorch/stylized-test_"+str(batch_id + 1)+".jpg \
+                            --cuda 0")
                 transformer.to(device).train()
 
     # save model
