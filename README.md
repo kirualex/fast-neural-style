@@ -8,8 +8,8 @@ source activate pytorch
 
 // If not, let's create it
 conda create pytorch python=3.6
-conda install pytorch=0.3.1
-conda install torchvision=0.2.1
+conda install pytorch=0.4.2
+pip install -r requirements.txt
 ```
 
 ### Train

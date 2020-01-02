@@ -1,8 +1,9 @@
-numpy==1.18.0
+numpy==1.16.4
 torch==1.3.1
-torchvision==0.4.2
+torchvision==0.2.1
 Pillow==6.1
 six==1.10.0
 coremltools==3.1
 onnx==1.6.0
 onnx_coreml==1.1
+tensorflow==1.12.0
