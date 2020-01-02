@@ -102,7 +102,7 @@ def train(args):
                 )
                 print(mesg)
 
-            if args.checkpoint_model_dir is not None and (batch_id + 1) % args.checkpoint_interval == 0:
+            if args.checkpoint_model_dir is not None and (batch_id + 1) % int(args.checkpoint_interval / args.batch_size)== 0:
                 transformer.eval().cpu()
                 ckpt_model_filename = "checkpoint_"+ str(batch_id + 1) + ".pth" #"ckpt_epoch_" + str(e) + "_batch_id_" + str(batch_id + 1) + ".pth"
                 ckpt_model_path = os.path.join(args.checkpoint_model_dir, ckpt_model_filename)
@@ -149,6 +149,7 @@ def stylize(args):
             style_model.to(device)
             if args.export_onnx:
                 assert args.export_onnx.endswith(".onnx"), "Export model file should end with .onnx"
+                
                 output = torch.onnx._export(style_model, content_image, args.export_onnx).cpu()
             else:
                 output = style_model(content_image).cpu()

@@ -21,12 +21,12 @@ rm -f ~/Documents/data/images/pytorch/*.jpg \
 && \
 python neural_style/neural_style.py train \
 --dataset ~/Documents/data/training \
---style-image ~/Documents/data/images/styles/anfield.jpg \
---style-size 620 \
---batch-size 2 \
+--style-image ~/Documents/data/images/styles/audrey.jpg \
+--style-size 720 \
+--batch-size 4 \
 --epochs 2 \
 --seed 27 \
---style-weight 1e10 \
+--style-weight 4e10 \
 --content-weight 2e5 \
 --checkpoint-model-dir ~/Documents/data/models/pytorch-checkpoints \
 --checkpoint-interval 1000 \
@@ -41,13 +41,13 @@ python neural_style/neural_style.py train \
 python ./neural_style/neural_style.py eval  \
 --content-image ~/Documents/data/images/test.jpg \
 --output-image ~/Documents/data/images/stylized-test.jpg \
---model ~/Documents/data/models/pytorch-checkpoints/checkpoint_43000.pth \
+--model ~/Documents/data/models/pytorch-checkpoints/checkpoint_250.pth \
 --cuda 0 \
 --export_onnx ~/Documents/data/models/pytorch_model.onnx \
 && \
 python ./onnx_to_coreml.py \
 ~/Documents/data/models/pytorch_model.onnx  \
-~/Documents/data/models/anfield.mlmodel
+~/Documents/data/models/audrey.mlmodel
 ```
 
 ### Stylize test

@@ -1,6 +1,10 @@
 import sys
+import onnx_coreml
+import onnx
 from onnx import onnx_pb
 from onnx_coreml import convert
+
+print("onnx: ", onnx.__version__)
 
 model_in = sys.argv[1]
 model_out = sys.argv[2]
