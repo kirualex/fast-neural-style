@@ -1,22 +1,23 @@
+import os
 import sys
 import onnx_coreml
 import onnx
 import coremltools
-from onnx import onnx_pb
+from onnx import onnx_pb, utils
 from onnx_coreml import convert
 
 print("----")
-print("onnx: ", onnx.__version__)
+os.system("pip freeze | grep onnx")
+os.system("pip freeze | grep coremltools")
 print("----")
 
 model_in = sys.argv[1]
 model_out = sys.argv[2]
 
-model_file = open(model_in, 'rb')
-model_proto = onnx_pb.ModelProto()
-model_proto.ParseFromString(model_file.read())
+onnx_model = onnx.load(model_in)
+polished_model = onnx.utils.polish_model(onnx_model)
 
-coreml_model = convert(model_proto, image_input_names=['0'], image_output_names=['156'])
+coreml_model = convert(polished_model, image_input_names=['0'], image_output_names=['156'])
 coreml_model.author = "Monoqle"
 coreml_model.license = "All rights reserved"
 
