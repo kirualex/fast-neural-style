@@ -10,11 +10,12 @@ from pathlib import Path
 from onnx import onnx_pb, utils
 from onnx_coreml import convert
 from neural_style.transformer_net import TransformerNet
-
+from reconet import ReCoNet
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--pth_model', help='Path for your .pth model', type=str, default=None)
 parser.add_argument('--onnx_model', help='Path for your .onnx model', type=str, default=None)
+parser.add_argument('--net', help='Network type', type=str, default='TransformerNet')
 parser.add_argument('--output', help='Path for your output model', type=str, default="model.mlmodel")
 args = parser.parse_args()
 
@@ -28,6 +29,12 @@ model_in = args.pth_model
 onnx_in = args.onnx_model
 model_out = args.output
 
+valid_net = (args.net == 'TransformerNet' or args.net == 'ReCoNet')
+
+if not valid_net :
+    print("Invalid Net")
+    exit()
+
 # ---- Pytorch -> ONNX
 
 if model_in :
@@ -37,13 +44,20 @@ if model_in :
 
     print(f'> Converting {filename} to ONNX')
     
-    model = TransformerNet()
-    model.load_state_dict(torch.load(model_in))
-    # Create dummy input
-    dummy_input = torch.rand(1, 3, 720, 720)
     # Define input / output names
     input_names = ["inputImage"]
-    output_names = ["outputImage"]
+
+    if args.net == 'TransformerNet' :
+        model = TransformerNet()
+        dummy_input = torch.rand(1, 3, 720, 720)
+        output_names = ["outputImage"]
+    else :
+        model = ReCoNet()
+        dummy_input = torch.rand(1, 3, 360, 640)
+        output_names = ["unknown", "outputImage"]
+
+    model.load_state_dict(torch.load(model_in))
+
     # Convert the PyTorch model to ONNX
     torch.onnx.export(model,
                       dummy_input,
