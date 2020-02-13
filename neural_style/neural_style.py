@@ -43,11 +43,11 @@ def train(args):
     train_dataset = datasets.ImageFolder(args.dataset, transform)
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size)
 
-    transformer = TransformerNet().to(device)
+    transformer = TransformerNet(args.alpha).to(device)
     optimizer = Adam(transformer.parameters(), args.lr)
     mse_loss = torch.nn.MSELoss()
 
-    vgg = Vgg16(requires_grad=False).to(device)
+    vgg = Vgg16().to(device)
     style_transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Lambda(lambda x: x.mul(255))
@@ -87,7 +87,7 @@ def train(args):
             style_loss *= args.style_weight
 
             total_loss = content_loss + style_loss
-            total_loss.backward()
+            total_loss.backward(retain_graph=True)
             optimizer.step()
 
             agg_content_loss += content_loss.item()
@@ -111,6 +111,7 @@ def train(args):
                             --model ~/Documents/data/models/pytorch-checkpoints/"+ckpt_model_filename+" \
                             --content-image ~/Documents/data/images/test.jpg \
                             --output-image ~/Documents/data/images/pytorch/stylized-test_"+str(batch_id + 1)+".jpg \
+                            --alpha "+str(args.alpha)+" \
                             --cuda 0")
                 transformer.to(device).train()
 
@@ -139,7 +140,7 @@ def stylize(args):
         output = stylize_onnx_caffe2(content_image, args)
     else:
         with torch.no_grad():
-            style_model = TransformerNet()
+            style_model = TransformerNet(args.alpha)
             state_dict = torch.load(args.model)
             # remove saved deprecated running_* keys in InstanceNorm from the checkpoint
             for k in list(state_dict.keys()):
@@ -205,6 +206,8 @@ def main():
                                   help="weight for content-loss, default is 1e5")
     train_arg_parser.add_argument("--style-weight", type=float, default=1e10,
                                   help="weight for style-loss, default is 1e10")
+    train_arg_parser.add_argument("--alpha", type=float, default=1.0,
+                                  help="Width-multiplier between 0 and 1. Lower alpha means faster models but slightly worse quality")
     train_arg_parser.add_argument("--lr", type=float, default=1e-3,
                                   help="learning rate, default is 1e-3")
     train_arg_parser.add_argument("--log-interval", type=int, default=500,
@@ -221,6 +224,8 @@ def main():
                                  help="path for saving the output image")
     eval_arg_parser.add_argument("--model", type=str, required=True,
                                  help="saved model to be used for stylizing the image. If file ends in .pth - PyTorch path is used, if in .onnx - Caffe2 path")
+    eval_arg_parser.add_argument("--alpha", type=float, default=1.0,
+                                  help="Width-multiplier between 0 and 1. Lower alpha means faster models but slightly worse quality")
     eval_arg_parser.add_argument("--cuda", type=int, required=True,
                                  help="set it to 1 for running on GPU, 0 for CPU")
     eval_arg_parser.add_argument("--export_onnx", type=str,
